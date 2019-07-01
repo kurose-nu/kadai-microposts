@@ -11,7 +11,7 @@ class User < ApplicationRecord
     
     has_many :microposts
     # 自分がフォローしているユーザへの参照
-    has_many :relationships
+    has_many :relationships, class_name: "Relationship", foreign_key: "user_id"
     # 自分がフォローしているUser達を表現
     # Followingモデルはないため、relationshipsのfollowカラムを参照する
     has_many :followings, through: :relationships, source: :follow
@@ -20,6 +20,11 @@ class User < ApplicationRecord
     # 自分をフォローしているUser達を表現
     # Followerモデルはないため、reverse_of_relationshipsのuserカラムを参照する    
     has_many :followers, through: :reverses_of_relationship, source: :user
+    
+    # 自分がお気に入りしている投稿の参照
+    has_many :favorites
+    # 自分がお気に入りしている投稿を表現
+    has_many :likes, through: :favorites, source: :micropost
     
     # ユーザをフォローする
     def follow(other_user)
@@ -42,6 +47,22 @@ class User < ApplicationRecord
       # self.followings　⇨　フォローしているユーザを取得
       # include?(other_user)　⇨　other_userが含まれているか
       self.followings.include?(other_user)
+    end
+    
+    # 投稿をお気に入りに追加する
+    def favorite(favorite_micropost)
+      self.favorites.find_or_create_by(micropost_id: favorite_micropost.id)
+    end
+    
+    # 投稿のお気に入りを外す
+    def unfavorite(favorite_micropost)
+      favorite = self.favorites.find_by(micropost_id: favorite_micropost.id)
+      favorite.destroy if favorite
+    end
+    
+    # 既にお気に入りに追加されているかを判断
+    def favoriting?(favorite_micropost)
+      self.likes.include?(favorite_micropost)
     end
     
     # タイムライン用のマイクロポストの取得

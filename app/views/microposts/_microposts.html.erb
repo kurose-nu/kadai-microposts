@@ -1,41 +1,35 @@
 <ul class="list-unstyled">
-  
-<% microposts.each do |micropost| %>
-
+  <% microposts.each do |micropost| %>
     <li class="media mb-3">
-      <img class="mr-2 rounded" src="
-<%= gravatar_url(micropost.user, { size: 50 }) %>
-" alt="">
+      <img class="mr-2 rounded" src="<%= gravatar_url(micropost.user, { size: 50 }) %>" alt="">
       <div class="media-body">
         <div>
-          
 <%= link_to micropost.user.name, user_path(micropost.user) %>
- <span class="text-muted">posted at 
-<%= micropost.created_at %>
-</span>
+ <span class="text-muted">posted at <%= micropost.created_at %></span>
         </div>
         <div>
-          <p class="mb-0">
-<%= micropost.content %>
-</p>
+          <p class="mb-0"><%= micropost.content %></p>
         </div>
         <div>
-          
 <% if current_user == micropost.user %>
-
-            
 <%= link_to "Delete", micropost, method: :delete, data: { confirm: "You sure?" }, class: 'btn btn-danger btn-sm' %>
-
-          
 <% end %>
-
+        </div>
+        <div>
+          <% if current_user.favoriting?(micropost) %>
+            <%= form_with(model: current_user.favorites.find_by(micropost_id: micropost.id), local: true, method: :delete) do |f| %>
+              <%= hidden_field_tag :micropost_id, micropost.id %>
+              <%= f.submit 'UnFavorite', class: 'btn btn-success btn-sm' %>
+            <% end %>
+          <% else %>
+            <%= form_with(model: current_user.favorites.build, local: true) do |f| %>
+              <%= hidden_field_tag :micropost_id, micropost.id %>
+              <%= f.submit 'Favorite', class: 'btn btn-success btn-sm' %>
+            <% end %>
+          <% end %>
         </div>
       </div>
     </li>
-  
 <% end %>
-
-  
 <%= paginate microposts %>
-
 </ul>
